@@ -1,0 +1,4 @@
+*.npy
+*.txt
+dann_slimulations_*/
+joblog.*
