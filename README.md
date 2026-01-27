@@ -9,6 +9,13 @@ Anywhere on hoffman2, these data processing scripts can be used like so:
 ## How to convert SLiM simulation files to numpy arrays:
 python /u/project/ngarud/Garud_lab/Brendan/Utils/SLiMsims_to_numpy.py <out.npy> <n_samps> <window> <in_dir> <channels>
 
+Or, you can modify the contents of submit_process_sims.sh and run a job on highp:
+cp /u/project/ngarud/Garud_lab/Brendan/Utils/submit_process_sims.sh submit_process_sims.sh
+qsub submit_process_sims.sh
+
+Ensure that the conda environment is set up properly. This line is specific to Brendan:
+conda activate tf_A100_clean
+
 --
 
 ## How to convert HMP csv files to numpy arrays:
