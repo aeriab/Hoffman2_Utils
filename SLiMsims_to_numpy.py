@@ -3,46 +3,53 @@ import subprocess
 import glob
 import os
 import sys
+import argparse
+from tqdm import tqdm
 
-# Usage: python SLiMsims_to_numpy.py <out.npy> <n_samps> <window> <in_dir> <channels>
+def main():
+    parser = argparse.ArgumentParser(description="Batch process SLiM simulations (Direct Write Version).")
+    parser.add_argument("output_npy", help="Path for the final output .npy file")
+    parser.add_argument("input_dir", help="Directory containing SLiM .txt output files")
+    parser.add_argument("--num_samps", type=int, default=100, help="Target haplotypes")
+    parser.add_argument("--window_size", type=int, default=201, help="Window size (SNPs)")
+    parser.add_argument("--channels", type=int, choices=[1, 2], default=2, help="1=BW, 2=Color")
+    parser.add_argument("--sort", action="store_true", help="Apply rows_dist sorting")
+    parser.add_argument("--helper_path", default="/u/project/ngarud/Garud_lab/Brendan/Utils/helper_processSLiMsims.py")
 
-# 1. Parse Arguments
-OUTPUT_FILE = sys.argv[1] 
-NUM_SAMPS   = int(sys.argv[2]) 
-WINDOW_SIZE = int(sys.argv[3]) 
-INPUT_DIR   = sys.argv[4]
-CHANNELS    = int(sys.argv[5]) # 1 for (N, S, W), 2 for (N, S, W, 2)
+    args = parser.parse_args()
 
-# 2. Identify input files
-input_files = sorted(glob.glob(os.path.join(INPUT_DIR, "*.txt")))
-NUM_SIMS = len(input_files)
+    input_files = sorted(glob.glob(os.path.join(args.input_dir, "*.txt")))
+    num_sims = len(input_files)
+    
+    if num_sims == 0:
+        print(f"Error: No .txt files in {args.input_dir}"); sys.exit(1)
 
-# 3. Define the shape based on requested channels
-if CHANNELS == 2:
-    SIM_SHAPE = (NUM_SAMPS, WINDOW_SIZE, 2)
-else:
-    SIM_SHAPE = (NUM_SAMPS, WINDOW_SIZE)
+    # Define Shape & Allocate
+    sim_shape = (num_sims, args.num_samps, args.window_size)
+    if args.channels == 2: sim_shape += (2,)
 
-# 4. Preallocate the huge file on disk
-# This creates the 'skeleton' that the workers will fill in
-big_array = np.lib.format.open_memmap(
-    OUTPUT_FILE, dtype=np.float32, mode="w+", shape=(NUM_SIMS,) + SIM_SHAPE
-)
-del big_array # Close it so workers can open it in r+ mode
-
-# 5. Loop over files and launch the worker for each
-for i, infile in enumerate(input_files):
-    subprocess.run(
-        [
-            "python",
-            "/u/project/ngarud/Garud_lab/Brendan/Utils/helper_processSLiMsims.py",
-            infile,
-            OUTPUT_FILE,
-            str(NUM_SAMPS),
-            str(WINDOW_SIZE),
-            str(i)
-        ],
-        check=True,
+    print(f"Allocating {num_sims} sims to {args.output_npy}...")
+    
+    # Pre-create file as int8 (most efficient for 0/1 genotype data)
+    big_array = np.lib.format.open_memmap(
+        args.output_npy, dtype=np.int8, mode="w+", shape=sim_shape
     )
+    del big_array # Hand off to workers
 
-print(f"Done! Processed {NUM_SIMS} files into {OUTPUT_FILE}")
+    # Execute Workers
+    for i, infile in enumerate(tqdm(input_files)):
+        sort_flag = "rows_dist" if args.sort else "none"
+        try:
+            subprocess.run([
+                "python", args.helper_path,
+                infile, args.output_npy,
+                str(args.num_samps), str(args.window_size),
+                str(i), str(num_sims), str(args.channels), sort_flag
+            ], check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            print(f"\nFailed: {infile}\n{e.stderr.decode()}")
+
+    print("Success!")
+
+if __name__ == "__main__":
+    main()

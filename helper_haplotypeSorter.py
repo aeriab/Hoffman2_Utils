@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 
 def parse_slim_sims(path_sims):
     """
@@ -344,49 +345,70 @@ def sort_haplotypes(mut_array,ordering=None):
 
 # ---------------------------------------------------------------------------------------------------------------------  
 
-# Main script execution
-if __name__ == "__main__":
-
-    # Check for correct number of command-line arguments
-    if len(sys.argv) != 6:
-        print("Usage: python processSLiMsims.py <input_slim_file> <output_npy_file> <n_samples> <window_size><index>")
+def main():
+    if len(sys.argv) < 9:
+        print("Usage: python helper.py <input> <output> <n_samps> <window> <index> <total_sims> <channels> <sort_flag>")
         sys.exit(1)
 
-    # Read command-line arguments
-    PATH_SIMS = sys.argv[1] #input SLiM simulation file ex: "slim_hitchhiking_0.2.txt"
-    OUTPUT_PATH = sys.argv[2] #output numpy file name ex: "mut_array_0.2_ancestralCoding.npy"
-    NUM_SAMPS = int(sys.argv[3]) #number of haplotypes to sample ex: 100
-    WINDOW_SIZE = int(sys.argv[4]) #window size in number of SNPs ex: 201
-    INDEX= int(sys.argv[5]) #index in big array to store results
+    # 1. Parse Args
+    PATH_SIMS   = sys.argv[1]
+    OUTPUT_PATH = sys.argv[2]
+    NUM_SAMPS   = int(sys.argv[3])
+    WINDOW_SIZE = int(sys.argv[4])
+    INDEX       = int(sys.argv[5])
+    TOTAL_SIMS  = int(sys.argv[6])
+    CHANNELS    = int(sys.argv[7])
+    SORT_ORDER  = sys.argv[8]
 
+    # 2. Parse SLiM file
+    try:
+        mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict = parse_slim_sims(PATH_SIMS)
+        mut_array = create_haplotype_matrix(mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict)
+    except Exception as e:
+        print(f"Error parsing {PATH_SIMS}: {e}")
+        return
 
-    # Parse the SLiM simulation file and generate dictionaries with mutation and genome data
-    mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict = parse_slim_sims(PATH_SIMS)
-    
-    # Create the haplotype matrix as a numpy array
-    mut_array = create_haplotype_matrix(mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict)
+    # 3. Downsampling / Sampling
+    # If your simulations have missing data (coded as < 0), this picks the best.
+    # Otherwise, it falls back to the random sampling logic you provided.
+    total_available = mut_array.shape[0]
+    if total_available > NUM_SAMPS:
+        missing_counts = np.sum((mut_array[:, :, 0] < 0), axis=1)
+        if np.any(missing_counts > 0):
+            best_indices = np.argsort(missing_counts)[:NUM_SAMPS]
+            best_indices.sort()
+            mut_array = mut_array[best_indices]
+        else:
+            # Fallback to your existing sampling logic if no missing data
+            mut_array = sample_haplotypes(mut_array, n_samples=NUM_SAMPS)
+    elif total_available < NUM_SAMPS:
+        padding = np.zeros((NUM_SAMPS - total_available, mut_array.shape[1], 2), dtype=mut_array.dtype)
+        mut_array = np.concatenate([mut_array, padding], axis=0)
 
-
-    # sample n individuals/haplotypes
-    mut_array = sample_haplotypes(mut_array, n_samples=NUM_SAMPS)
-
-    #crop to window size in number of SNPs
+    # 4. Crop to Window
     mut_array = crop(mut_array, window_size=WINDOW_SIZE, sparse=False)
 
-    #major minor 
-    #mut_array=major_minor(mut_array) #use this is you want to sort by major minor otherwise 0=ancestral, 1=derived
-    
-    #sort haplotypes    
-    mut_array_sorted= sort_haplotypes(mut_array,'rows_freq')
-    #print(mut_array_sorted.shape)
+    # 5. Sorting
+    if SORT_ORDER != "none":
+        sort_haplotypes(mut_array, ordering=SORT_ORDER)
 
-    #save as npy
-    #np.save(output_path, mut_array_sorted)
-    # Open big file in write mode and store directly
+    # 6. Formatting for the Final Big Array
+    # Note: Parent uses int8 for space, so we cast here.
+    if CHANNELS == 1:
+        final_data = mut_array[:, :, 0].astype(np.int8)
+        target_shape = (TOTAL_SIMS, NUM_SAMPS, WINDOW_SIZE)
+    else:
+        final_data = mut_array.astype(np.int8)
+        target_shape = (TOTAL_SIMS, NUM_SAMPS, WINDOW_SIZE, 2)
+
+    # 7. Direct Slotting into the Memory-Mapped file
     big_array = np.lib.format.open_memmap(
-        OUTPUT_PATH, dtype=np.float32, mode="r+", shape=(2, NUM_SAMPS, WINDOW_SIZE, 2)
+        OUTPUT_PATH, dtype=np.int8, mode="r+", shape=target_shape
     )
-    #print(big_array.shape)
-    big_array[INDEX] = mut_array_sorted
+    
+    big_array[INDEX] = final_data
+    del big_array 
 
-    del big_array  # flush changes
+if __name__ == "__main__":
+    main()
+

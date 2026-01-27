@@ -4,9 +4,12 @@ Shared utilities for SLiMulations and CNN sweep detection.
 
 Anywhere on hoffman2, these data processing scripts can be used like so:
 
-## How to convert HMP csv files to numpy arrays:
+--
+
+## How to convert SLiM simulation files to numpy arrays:
 python /u/project/ngarud/Garud_lab/Brendan/Utils/SLiMsims_to_numpy.py <out.npy> <n_samps> <window> <in_dir> <channels>
 
+--
 
 ## How to convert HMP csv files to numpy arrays:
 ### Standard (2 channels, sorted, downsampled to 100):
