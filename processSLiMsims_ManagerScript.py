@@ -35,7 +35,7 @@ for i, infile in enumerate(input_files):
     subprocess.run(
         [
             "python",
-            "/u/project/ngarud/Garud_lab/Brendan/Utils/processSLiMsims.py",
+            "/u/project/ngarud/Garud_lab/Brendan/Utils/helper_processSLiMsims.py",
             infile,
             OUTPUT_FILE,
             str(NUM_SAMPS),
