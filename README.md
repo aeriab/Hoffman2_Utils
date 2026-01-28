@@ -30,4 +30,7 @@ python HMP_csv_to_numpy.py data.csv output.npy --channels 1
 
 
 ## Visualize a given numpy array of shape (batch#, sample#, site#, 2)
-source /u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh input.npy output_prefix
+### First, in order to run an R script:
+module load R/4.2.2
+### Then, make the visualizations:
+/u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh input.npy output_prefix
