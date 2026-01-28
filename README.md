@@ -24,3 +24,10 @@ python HMP_csv_to_numpy.py data.csv output.npy --window_h 201 --slide_step 10 --
 
 ### Minimalist (1 channel, no sorting, full samples):
 python HMP_csv_to_numpy.py data.csv output.npy --channels 1
+
+
+--
+
+
+## Visualize a given numpy array of shape (batch#, sample#, site#, 2)
+source /u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh input.npy output_prefix
