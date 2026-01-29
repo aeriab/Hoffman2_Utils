@@ -1,37 +1,44 @@
 #!/bin/bash
 
-# Get the directory where THIS script is located
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-HAP_PLOT_PATH="$SCRIPT_DIR/hap_plot.R"
+# Load Conda into the shell session
+. /u/local/Apps/anaconda3/etc/profile.d/conda.sh
+conda activate hap-env
 
 INPUT_NPY=$1
 PREFIX=$2
 
-# Check if file exists
+# Check if input file exists
 if [ ! -f "$INPUT_NPY" ]; then
     echo "Error: File $INPUT_NPY not found."
     exit 1
 fi
 
-# Load R module inside script to be safe
-unset R_HOME
-module load R/4.2.2
+FINAL_BUNDLE="${PREFIX}_selected_10.npy"
 
-TOTAL_IMAGES=$(python -c "import numpy as np; print(np.load('$INPUT_NPY', mmap_mode='r').shape[0])")
-indices=$(python -c "import numpy as np; print(' '.join(map(str, np.linspace(0, $TOTAL_IMAGES-1, 10, dtype=int))))")
+# Perform selection and stacking in a single Python execution
+python -c "
+import numpy as np
+import sys
 
-for i in $indices; do
-    TEMP_NPY="temp_idx_${i}.npy"
-    OUT_PNG="${PREFIX}_idx_${i}.png"
+input_path = sys.argv[1]
+output_path = sys.argv[2]
 
-    # Extract slice
-    python -c "import numpy as np, sys; \
-               arr = np.load(sys.argv[1], mmap_mode='r'); \
-               np.save(sys.argv[2], arr[int(sys.argv[3]), :, :, 0][np.newaxis, :, :])" \
-               "$INPUT_NPY" "$TEMP_NPY" "$i"
+# Load using mmap_mode to handle large files without filling RAM
+data = np.load(input_path, mmap_mode='r')
+total_images = data.shape[0]
 
-    # Call R using the absolute path we found earlier
-    Rscript "$HAP_PLOT_PATH" -f "$TEMP_NPY" -i 1 -o "$OUT_PNG" --sort_method 'frequency'
+# Calculate 10 evenly spaced indices
+indices = np.linspace(0, total_images - 1, 10, dtype=int)
+print(f'Selected indices: {indices}')
 
-    rm "$TEMP_NPY"
-done
+# Extract slices and stack. 
+# We remove the trailing channel dimension (..., 0) if it exists
+# to get the requested (10, samples, sites) shape.
+selected_data = data[indices, :, :, 0]
+
+# Save the final bundle
+np.save(output_path, selected_data)
+print(f'Successfully saved array of shape {selected_data.shape} to {output_path}')
+" "$INPUT_NPY" "$FINAL_BUNDLE"
+
+echo "Done."
