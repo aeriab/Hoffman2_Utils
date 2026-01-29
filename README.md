@@ -19,15 +19,21 @@ conda activate tf_A100_clean
 --
 
 ## How to convert HMP csv files to numpy arrays:
-### Standard (2 channels, sorted, downsampled to 100):
-python HMP_csv_to_numpy.py data.csv output.npy --window_h 201 --slide_step 10 --channels 2 --target_samples 100 --sort
+### Standard (2 channels, sorted, downsampled to 120):
+python /u/project/ngarud/Garud_lab/Brendan/Utils/HMP_csv_to_numpy.py data.csv output.npy --window_h 201 --slide_step 10 --channels 2 --target_samples 120 --sort
 
 ### Minimalist (1 channel, no sorting, full samples):
-python HMP_csv_to_numpy.py data.csv output.npy --channels 1
+python /u/project/ngarud/Garud_lab/Brendan/Utils/HMP_csv_to_numpy.py data.csv output.npy --channels 1
 
 
 --
 
 
 ## Get a subsample of a numpy of shape (batch#, sample#, site#, 2)
-/u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh input.npy output_prefix
+
+### This example gets a snapshot of the bw channel:
+/u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh sims.npy my_test
+
+### This example gets a snapshot of the color channel:
+/u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh sims.npy my_test 1
+
