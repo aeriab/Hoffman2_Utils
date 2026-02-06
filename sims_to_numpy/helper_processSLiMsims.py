@@ -318,6 +318,9 @@ if __name__ == "__main__":
     
     # 3. Sample haplotypes
     mut_array = sample_haplotypes(mut_array, n_samples=NUM_SAMPS)
+
+    is_variant = np.var(mut_array[:, :, 0], axis=0) > 0
+    mut_array = mut_array[:, is_variant, :]
     
     # 4. Crop to window size
     mut_array = crop(mut_array, window_size=WINDOW_SIZE, sparse=False)
