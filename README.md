@@ -37,3 +37,14 @@ python /u/project/ngarud/Garud_lab/Brendan/Utils/HMP_csv_to_numpy.py data.csv ou
 ### This example gets a snapshot of the color channel:
 /u/project/ngarud/Garud_lab/Brendan/Utils/hap_sample.sh sims.npy my_test 1
 
+
+--
+
+
+## Train a color CNN that classifies a haplotype image as hard, soft, or neutral
+### This takes in three numpy arrays each numpy of shape (batch#, sample#, site#, 2)
+### Numpy 1, 2, and 3 are Hard, Soft, and Neutral numpy arrays
+python /u/project/ngarud/Garud_lab/Brendan/Utils/color_CNN_train.py hard_sweep.npy soft_sweep.npy neutral.npy output_model_name
+
+python /u/project/ngarud/Garud_lab/Brendan/Utils/color_CNN_train.py hard_sweep.npy soft_sweep.npy neutral.npy output_model_name --batch_size 32 --train_prop 0.8
+
