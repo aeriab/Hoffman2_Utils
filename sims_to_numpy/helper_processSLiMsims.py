@@ -3,16 +3,14 @@
 Helper script to process a single SLiM simulation file.
 Called by SLiMsims_to_numpy.py manager script.
 
-Output Encoding:
-  Channel 1 (Allele State):
-    -1 = Major allele
-     0 = Missing data
-     1 = Minor allele
-
-  Channel 2 (Mutation Type):
-    -1 = Synonymous mutation
-     0 = Major allele / Missing data
-     1 = Non-synonymous mutation
+REVISED ORDER OF OPERATIONS:
+1. Parse SLiM output
+2. Create full haplotype matrix
+3. Downsample individuals (NUM_SAMPS)
+4. Filter out invariant sites (relative only to those sampled individuals)
+5. Standardize Major/Minor alleles
+6. Crop to fixed SNP-window size
+7. Sort haplotypes
 """
 
 import numpy as np
@@ -22,12 +20,6 @@ import sys
 def parse_slim_sims(path_sims):
     """
     Parses a SLiM simulation output file to extract mutation types, positions, and genome sequences.
-    
-    Returns:
-        mut_type_dict: mutation ID -> selection coefficient
-        mut_pos_dict: mutation ID -> position
-        pos_to_idx_dict: position -> array index
-        genomes_dict: sample ID -> list of mutation IDs
     """
     mut_type_dict = {}
     mut_pos_dict = {}
@@ -70,52 +62,27 @@ def parse_slim_sims(path_sims):
 
 def create_haplotype_matrix(mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict, 
                             missing_positions=None):
-    """
-    Creates a haplotype matrix from genome sequences and mutation data.
-    
-    Encoding:
-      Channel 1 (Allele State):
-        -1 = Major allele
-         0 = Missing data
-         1 = Minor allele
-
-      Channel 2 (Mutation Type):
-        -1 = Synonymous mutation (selection coefficient = 0)
-         0 = Major allele / Missing data
-         1 = Non-synonymous mutation (selection coefficient != 0)
-    """
+    """Creates a haplotype matrix from genome sequences and mutation data."""
     n_samples = len(genomes_dict)
     n_sites = len(pos_to_idx_dict)
     
-    # Initialize array
-    # Channel 1: -1 (major allele) by default
-    # Channel 2: 0 (no mutation / missing) by default
     mut_array = np.zeros((n_samples, n_sites, 2), dtype=np.int8)
     mut_array[:, :, 0] = -1  # Default to major allele
     
-    # Convert missing_positions to a set for O(1) lookup
     missing_set = set(missing_positions) if missing_positions is not None else set()
     
-    # Mark missing data positions
     for pos_idx in missing_set:
-        mut_array[:, pos_idx, 0] = 0  # Missing in Channel 1
-        mut_array[:, pos_idx, 1] = 0  # Missing in Channel 2
+        mut_array[:, pos_idx, 0] = 0
+        mut_array[:, pos_idx, 1] = 0
     
-    # Fill in mutations for each sample
     for i, sample_id in enumerate(genomes_dict):
         mutation_ids = genomes_dict[sample_id]
-        
         for mut_id in mutation_ids:
             pos_idx = pos_to_idx_dict[mut_pos_dict[mut_id]]
-            
-            # Skip missing positions
             if pos_idx in missing_set:
                 continue
             
-            # Channel 1: Minor allele present
             mut_array[i, pos_idx, 0] = 1
-            
-            # Channel 2: Synonymous vs Non-synonymous
             selection_coef = float(mut_type_dict[mut_id])
             if selection_coef != 0:
                 mut_array[i, pos_idx, 1] = 1   # Non-synonymous
@@ -137,7 +104,10 @@ def sample_haplotypes(mut_array, n_samples):
 
 
 def crop(mut_array, window_size, sparse=False):
-    """Crop the matrix to a specified window size, centered on the middle."""
+    """
+    Revised crop logic: Grabs the first window_size variant sites. 
+    This avoids throwing away images where the 'middle' is thin.
+    """
     current_size = mut_array.shape[1]
     
     if current_size < window_size:
@@ -146,38 +116,26 @@ def crop(mut_array, window_size, sparse=False):
         return mut_array
     else:
         if sparse:
-            # Randomly sample SNP positions
             random_sites = np.random.choice(current_size, window_size, replace=False)
             random_sites.sort()
             return mut_array[:, random_sites, :]
         else:
-            # Center crop
-            start_idx = current_size // 2 - window_size // 2
-            return mut_array[:, start_idx:start_idx + window_size, :]
+            # Replaced center-crop with leading-edge crop to ensure we get a full window
+            return mut_array[:, :window_size, :]
 
 
 def major_minor(mut_array):
-    """
-    Ensure minor allele is always coded as 1 (flip if frequency > 0.5).
-    Handles missing data (value=0) correctly.
-    """
+    """Ensure minor allele is 1 based on current sample frequencies."""
     ch1 = mut_array[:, :, 0].copy()
-    
     for site_idx in range(ch1.shape[1]):
         site_data = ch1[:, site_idx]
-        
-        # Only consider non-missing data (values != 0)
         non_missing_mask = site_data != 0
         non_missing = site_data[non_missing_mask]
         
         if len(non_missing) > 0:
-            # Calculate frequency of minor allele (value=1)
             minor_freq = np.sum(non_missing == 1) / len(non_missing)
-            
             if minor_freq > 0.5:
-                # Flip alleles: -1 <-> 1, keep 0 unchanged
                 mut_array[non_missing_mask, site_idx, 0] *= -1
-    
     return mut_array
 
 
@@ -204,7 +162,6 @@ def clusterHaps(numSamples, samples_dict):
                     distance, s1 = hamming_distance_clump(key1, key2, 0.75)
                     
                     if distance == 0 and key1 != s1:
-                        # Key1 was modified (missing data filled in)
                         haps_clumped_count[s1] = haps_clumped_count[key1]
                         haps_clumped[s1] = haps_clumped[key1]
                         del haps_clumped_count[key1]
@@ -216,80 +173,62 @@ def clusterHaps(numSamples, samples_dict):
                         haps_clumped_count[key1] += 1
                         compared[key2] = 1
     
-    haps_clump_adjusted = {key: len(value) for key, value in haps_clumped.items()}
-    return haps_clumped, haps_clump_adjusted
+    return haps_clumped, haps_clumped_count
 
 
 def hamming_distance_clump(s1, s2, missing_thresh):
-    """
-    Calculate Hamming distance between haplotypes, handling missing data.
-    Missing data is encoded as '0' in the string representation.
-    """
+    """Hamming distance with missing data support."""
     list_s1 = s1.split(',')
     list_s2 = s2.split(',')
-    
-    # Count missing data
     numMissing_s1 = list_s1.count('0')
     numMissing_s2 = list_s2.count('0')
     
-    # If too much missing data, return max distance
     if (numMissing_s1 >= int(len(list_s1) * missing_thresh) or 
         numMissing_s2 >= int(len(list_s2) * missing_thresh)):
         return len(list_s1), s1
     
     distance = 0
     list_s1_modified = list(list_s1)
-    
     for i in range(len(list_s1)):
         if list_s1_modified[i] != list_s2[i]:
             if list_s1_modified[i] == '0':
-                # Fill in missing data from s2
                 list_s1_modified[i] = list_s2[i]
             elif list_s2[i] == '0':
-                # s2 has missing data, skip
                 pass
             else:
-                # Actual difference
                 distance += 1
                 if distance > 0:
                     return distance, s1
     
-    # Return potentially modified s1
     new_s1 = ','.join(list_s1_modified)
     return distance, new_s1
 
 
 def sort_haplotypes(mut_array, ordering=None):
-    """Sort haplotypes by frequency (most common first)."""
+    """Sort haplotypes by frequency."""
     if ordering is None or ordering == "none":
         return mut_array
     
     numSamples = mut_array.shape[0]
-    samples_dict = {}
-    samples_dict_full = {}
-
-    for j, row in enumerate(mut_array):
-        samples_dict[j] = row[:, 0]      # Channel 1 only for clustering
-        samples_dict_full[j] = row       # Full data for output
+    samples_dict = {j: row[:, 0] for j, row in enumerate(mut_array)}
+    samples_dict_full = {j: row for j, row in enumerate(mut_array)}
     
     haps_clumped, haps_clumped_count = clusterHaps(numSamples, samples_dict)
 
     if ordering == 'rows_freq':
-        # Sort by frequency (descending)
         haps_sorted = dict(sorted(haps_clumped_count.items(), 
                                    key=lambda x: x[1], reverse=True))
         sorted_data = []
         for hap in haps_sorted.keys():
             for idx in haps_clumped[hap]:
                 sorted_data.append(samples_dict_full[idx])
-        
         mut_array = np.array(sorted_data, dtype=np.int8)
 
     return mut_array
 
 
 # -----------------------------------------------------------------------------
-# Main
+# Main Execution Block (Order Reordered per Mentor Suggestion)
 # -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -308,34 +247,36 @@ if __name__ == "__main__":
     # 1. Parse SLiM output
     mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict = parse_slim_sims(PATH_SIMS)
     
-    # 2. Create haplotype matrix
-    # Note: For SLiM simulations, missing_positions is typically None
-    # Pass a list/set of position indices if you have missing data
+    # 2. Create initial haplotype matrix (all 30,000 samples)
     mut_array = create_haplotype_matrix(
         mut_type_dict, mut_pos_dict, pos_to_idx_dict, genomes_dict,
         missing_positions=None
     )
     
-    # 3. Sample haplotypes
+    # 3. Randomly downsample individuals (e.g., 30,000 -> 154)
     mut_array = sample_haplotypes(mut_array, n_samples=NUM_SAMPS)
 
+    # 4. Filter out invariant sites (looking ONLY at the 154 samples)
+    # This removes sites that became fixed/invariant due to the downsampling
     is_variant = np.var(mut_array[:, :, 0], axis=0) > 0
     mut_array = mut_array[:, is_variant, :]
     
-    # 4. Crop to window size
+    # 5. Correct Major/Minor alleles based on the new 154-sample frequencies
+    mut_array = major_minor(mut_array)
+
+    # 6. Crop to window size (using the first WINDOW_SIZE SNPs)
+    # This will now succeed as long as the 154 samples have > WINDOW_SIZE variant sites total
     mut_array = crop(mut_array, window_size=WINDOW_SIZE, sparse=False)
     
-    # 5. Sort haplotypes
+    # 7. Sort haplotypes
     if SORT_ORDER != "none":
         mut_array = sort_haplotypes(mut_array, SORT_ORDER)
 
-    # 6. Write to memmap
+    # 8. Write to memmap
     big_array = np.lib.format.open_memmap(OUTPUT_PATH, dtype=np.int8, mode="r+")
-
     if CHANNELS == 2:
         big_array[INDEX] = mut_array
     else:
-        # Single channel: allele state only
         big_array[INDEX] = mut_array[:, :, 0]
 
-    del big_array  # Flush to disk
+    del big_array
