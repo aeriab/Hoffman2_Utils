@@ -4,7 +4,7 @@ Visualize numpy haplotype arrays as PNG images directly on Hoffman2.
 
 ## Location
 ```
-/u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py
+/u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py
 ```
 
 ## Data Encoding
@@ -29,39 +29,39 @@ The visualizer expects numpy arrays with shape `(n_images, n_samples, n_sites, 2
 
 ### Basic: Plot first 10 images individually
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py Neu_sims.npy --output-dir ./plots
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py Neu_sims.npy --output-dir ./plots
 ```
 
 ### Grid view of first 10 images
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py \
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
     Neu_sims.npy --grid --output-dir ./plots
 ```
 
 ### Plot specific image indices
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py \
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
     HS_sims.npy --indices 0 100 500 1000 --grid
 ```
 
 ### Validate encoding + visualize
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py \
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
     Neu_sims.npy --validate --n 5 --grid
 ```
 
 ### Compare all three selection classes
 ```bash
 # Neutral
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py \
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
     Neu_sims.npy --indices 0 1 2 --grid --prefix neutral --output-dir ./plots
 
 # Hard sweep
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py \
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
     HS_sims.npy --indices 0 1 2 --grid --prefix hard_sweep --output-dir ./plots
 
 # Soft sweep
-python /u/project/ngarud/Garud_lab/Brendan/Utils/numpy_image_generator/visualize_haplotypes.py \
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
     SS_sims.npy --indices 0 1 2 --grid --prefix soft_sweep --output-dir ./plots
 ```
 
