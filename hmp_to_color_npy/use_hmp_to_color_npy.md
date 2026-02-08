@@ -19,26 +19,31 @@
 
 ---
 
-### Standard (sorted, downsampled to 120):
+### Standard (sorted by frequency, downsampled to 120):
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 120 --sort
+python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 120
 ```
 
-### Minimalist (no sorting, full samples):
+### Sorted by distance:
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py data.csv output.npy
+python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 120 --sort rows_dist
+```
+
+### No sorting, full samples:
+```bash
+python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py data.csv output.npy --sort none
 ```
 
 ### All Options:
-| Argument            | Default | Description                                              |
-|---------------------|---------|----------------------------------------------------------|
-| `input_csv`         | —       | Path to input CSV                                        |
-| `output_npy`        | —       | Path for output `.npy` file                              |
-| `--window_h`        | 200     | Window size (number of sites)                            |
-| `--slide_step`      | 10      | Step size for sliding window                             |
-| `--target_samples`  | None    | Downsample to N haplotypes (picks least missing data)    |
-| `--sort`            | False   | Sort haplotypes by distance (requires `helper_haplotypeSorter.py`) |
-| `--raw_missing_val` | -1      | Value representing missing data in the raw CSV           |
+| Argument            | Default     | Description                                              |
+|---------------------|-------------|----------------------------------------------------------|
+| `input_csv`         | —           | Path to input CSV                                        |
+| `output_npy`        | —           | Path for output `.npy` file                              |
+| `--window_h`        | 200         | Window size (number of sites)                            |
+| `--slide_step`      | 10          | Step size for sliding window                             |
+| `--target_samples`  | None        | Downsample to N haplotypes (picks least missing data)    |
+| `--sort`            | `rows_freq` | Sorting method: `rows_freq`, `rows_dist`, or `none`      |
+| `--raw_missing_val` | -1          | Value representing missing data in the raw CSV           |
 
 ### Output
 - `output.npy` — shape `(num_windows, num_samples, window_h, 2)`, dtype `int8`

@@ -26,10 +26,16 @@ from tqdm import tqdm
 # =============================================================================
 
 # How to use:
-# Standard (2 channels, sorted, downsampled to 100):
-#   python HMP_csv_to_numpy_v2.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 100 --sort
+# Standard (2 channels, sorted by frequency, downsampled to 100):
+#   python HMP_csv_to_numpy_v2.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 100 --sort rows_freq
 #
-# Minimalist (no sorting, full samples):
+# Sort by distance:
+#   python HMP_csv_to_numpy_v2.py data.csv output.npy --sort rows_dist
+#
+# No sorting:
+#   python HMP_csv_to_numpy_v2.py data.csv output.npy --sort none
+#
+# Minimalist (defaults to rows_freq sorting, full samples):
 #   python HMP_csv_to_numpy_v2.py data.csv output.npy
 
 try:
@@ -94,8 +100,9 @@ def main():
     parser.add_argument("--slide_step", type=int, default=10, help="Step size for sliding window")
     parser.add_argument("--target_samples", type=int, default=None,
                         help="Downsample to this many haplotypes (picks ones with least missing data)")
-    parser.add_argument("--sort", action="store_true",
-                        help="Sort haplotypes by distance (requires helper_haplotypeSorter.py)")
+    parser.add_argument("--sort", type=str, choices=["rows_freq", "rows_dist", "none"],
+                        default="rows_freq",
+                        help="Haplotype sorting method (default: rows_freq)")
     parser.add_argument("--raw_missing_val", type=int, default=-1,
                         help="Value representing missing data in the RAW csv (default: -1)")
 
@@ -132,6 +139,7 @@ def main():
 
     print(f"Preparing {num_images} windows. Output shape: {final_shape}")
     print(f"Encoding: Ch0[-1=major, 0=missing, 1=minor] Ch1[-1=syn, 0=major/missing, 1=nonsyn]")
+    print(f"Sorting: {args.sort}")
 
     final_data = np.zeros(final_shape, dtype=np.int8)
     final_site_indices = np.zeros((num_images, args.window_h), dtype=np.int32)
@@ -165,9 +173,9 @@ def main():
         current_image = np.stack([ch0, ch1], axis=-1)  # (samples, sites, 2)
 
         # --- E. SORTING ---
-        if args.sort:
+        if args.sort != "none":
             if helper_haplotypeSorter is not None:
-                helper_haplotypeSorter.sort_haplotypes(current_image, ordering='rows_dist')
+                helper_haplotypeSorter.sort_haplotypes(current_image, ordering=args.sort)
             else:
                 if i == 0:
                     print("Warning: Sorting requested but helper_haplotypeSorter.py not found.")
