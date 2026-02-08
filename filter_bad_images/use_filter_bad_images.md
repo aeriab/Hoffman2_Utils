@@ -12,22 +12,16 @@ When a SLiM simulation doesn't have enough segregating sites after downsampling 
 /u/project/ngarud/Garud_lab/Brendan/Utils/filter_bad_images/filter_bad_images.py
 ```
 
-## Usage
-
-```bash
-FILTER="/u/project/ngarud/Garud_lab/Brendan/Utils/filter_bad_images/filter_bad_images.py"
-```
-
 ### Single file
 
 ```bash
-python "$FILTER" hard_sorted_color.npy hard_clean.npy
+python "/u/project/ngarud/Garud_lab/Brendan/Utils/filter_bad_images/filter_bad_images.py" hard_sorted_color.npy hard_clean.npy
 ```
 
 ### Multiple files (input/output pairs)
 
 ```bash
-python "$FILTER" \
+python "/u/project/ngarud/Garud_lab/Brendan/Utils/filter_bad_images/filter_bad_images.py" \
     hard_sorted_color.npy hard_clean.npy \
     soft_sorted_color.npy soft_clean.npy \
     neutral_sorted_color.npy neutral_clean.npy
@@ -36,7 +30,7 @@ python "$FILTER" \
 ### Verbose mode (prints indices of bad images)
 
 ```bash
-python "$FILTER" --verbose \
+python "/u/project/ngarud/Garud_lab/Brendan/Utils/filter_bad_images/filter_bad_images.py" --verbose \
     hard_sorted_color.npy hard_clean.npy \
     soft_sorted_color.npy soft_clean.npy \
     neutral_sorted_color.npy neutral_clean.npy
