@@ -11,19 +11,20 @@ Visualize numpy haplotype arrays as PNG images directly on Hoffman2.
 
 The visualizer expects numpy arrays with shape `(n_images, n_samples, n_sites, 2)`:
 
-**Channel 1 (Allele State):**
-| Value | Meaning | Color |
-|-------|---------|-------|
-| -1 | Major allele | Red |
-| 0 | Missing data | Grey |
-| 1 | Minor allele | Blue |
+### Encoding Scheme
+**Channel 0 ("Black & White" - Genotype):**
+| Value | Meaning       | Color    | Hex       |
+|-------|---------------|----------|-----------|
+| -1    | Major allele  | CHARCOAL | `#2F3640` |
+|  0    | Missing data  | GREY     | `#BDC3C7` |
+|  1    | Minor allele  | BLUE     | `#3498DB` |
 
-**Channel 2 (Mutation Type):**
-| Value | Meaning | Color |
-|-------|---------|-------|
-| -1 | Synonymous mutation | Yellow |
-| 0 | Major allele / Missing | Muted Red |
-| 1 | Non-synonymous mutation | Green |
+**Channel 1 ("Color" - Mutation Type):**
+| Value | Meaning                | Color    | Hex       |
+|-------|------------------------|----------|-----------|
+| -1    | Synonymous mutation    | YELLOW   | `#E1B12C` |
+|  0    | Major allele / missing | CHARCOAL | `#2F3640` |
+|  1    | Non-synonymous mutation| GREEN    | `#44BD32` |
 
 ## Usage
 
