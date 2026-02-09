@@ -13,7 +13,7 @@ python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/plot_inf
 
 Example using R. bromii
 ``` bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/plot_inference_results.py r_bromii_predictions.txt --title "R. bromii (HMP, n=120) Color CNN Genomic Scan" --bin_size 3 --output r_bromii_color_cnn_scan.png
+python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/plot_inference_results.py r_bromii_predictions.txt --site_indices r_bromii_120_rows_freq_map.npy --title "R. bromii (HMP, n=120) Color CNN Genomic Scan" --bin_size 10 --output r_bromii_color_cnn_scan.png
 ```
 
 

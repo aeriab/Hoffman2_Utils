@@ -6,16 +6,21 @@ import sys
 import os
 
 parser = argparse.ArgumentParser(description="Plot genomic scan results from Color CNN inference")
-parser.add_argument('predictions', type=str, help="Path to predictions CSV from color_CNN_inference.py")
+parser.add_argument('predictions', type=str, help="Path to predictions .txt from color_CNN_inference.py")
 parser.add_argument('--positions', type=str, default=None,
-                    help="Path to a file mapping image index to genomic center position. "
-                         "Should be a CSV/TSV with columns 'Image_Index' and 'Center'. "
-                         "If not provided, Image_Index is used as x-axis.")
+                    help="Path to a text file mapping Image_Index to Center genomic position.")
+parser.add_argument('--site_indices', type=str, default=None,
+                    help="Path to a _site_indices.npy (or _freq_map.npy) file from HMP_csv_to_numpy.py. "
+                         "Center position for each window is computed as the midpoint of min and max site index.")
 parser.add_argument('--bin_size', type=int, default=3, help="Number of consecutive windows to average (default: 3)")
 parser.add_argument('--title', type=str, default='Genomic Scan', help="Plot title")
 parser.add_argument('--output', type=str, default='genomic_scan.png', help="Output plot filename (default: genomic_scan.png)")
 parser.add_argument('--dpi', type=int, default=300, help="Plot resolution (default: 300)")
 args = parser.parse_args()
+
+if args.positions and args.site_indices:
+    print("ERROR: Provide either --positions or --site_indices, not both.")
+    sys.exit(1)
 
 # --- Load predictions ---
 df = pd.read_csv(args.predictions)
@@ -31,9 +36,30 @@ if not expected_cols.issubset(df.columns):
 
 print(f"Loaded {len(df)} predictions from {args.predictions}")
 
-# --- Load or generate positions ---
-if args.positions:
-    pos_df = pd.read_csv(args.positions, sep=None, engine='python')  # auto-detect delimiter
+# --- Determine x-axis positions ---
+if args.site_indices:
+    print(f"Loading site indices from: {args.site_indices}")
+    site_map = np.load(args.site_indices, allow_pickle=True)
+
+    if len(site_map) != len(df):
+        print(f"WARNING: site_indices has {len(site_map)} windows but predictions has {len(df)} rows.")
+        print(f"Using min({len(site_map)}, {len(df)}) entries.")
+        n = min(len(site_map), len(df))
+        site_map = site_map[:n]
+        df = df.iloc[:n]
+
+    # Compute center as midpoint of (min_site + max_site) for each window
+    centers = []
+    for window_sites in site_map:
+        sites = np.array(window_sites)
+        center = (sites.min() + sites.max()) / 2.0
+        centers.append(center)
+    df['Center'] = centers
+    x_label = 'Genomic Position (Site Index)'
+    print(f"Computed center positions from site indices (range: {df['Center'].min():.0f} – {df['Center'].max():.0f})")
+
+elif args.positions:
+    pos_df = pd.read_csv(args.positions, sep=None, engine='python')
     if 'Center' not in pos_df.columns or 'Image_Index' not in pos_df.columns:
         print("ERROR: Positions file must have 'Image_Index' and 'Center' columns.")
         sys.exit(1)
@@ -42,6 +68,7 @@ if args.positions:
         print(f"WARNING: {df['Center'].isna().sum()} images have no matching position. These will be dropped.")
         df = df.dropna(subset=['Center'])
     x_label = 'Genomic Position (Center BP)'
+
 else:
     df['Center'] = df['Image_Index']
     x_label = 'Window Index'
@@ -66,7 +93,7 @@ point_colors = highest_prob.map(color_map)
 # --- Plot ---
 fig, ax = plt.subplots(figsize=(12, 6))
 
-y_values = -np.log10(df_binned['P_Neutral'])  # removed clip, errors if log(0)
+y_values = -np.log10(df_binned['P_Neutral'].clip(lower=1e-10))
 
 ax.scatter(df_binned['Center'], y_values, c=point_colors, s=15, alpha=0.8)
 
