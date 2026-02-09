@@ -28,7 +28,7 @@ If you pass in old single-channel data, the script will exit with an error telli
 
 ###  Run inference
 ``` bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/inference_color_CNN/color_CNN_inference.py my_color_model.json my_color_model.17.weights.h5 GHIST_colored.npy --output r_bromii_predictions.txt
+python /u/project/ngarud/Garud_lab/Brendan/Utils/inference_color_CNN/color_CNN_inference.py downsampled_color_CNN/downsampled_color_CNN_model.json downsampled_color_CNN/downsampled_color_CNN.17.weights.h5 r_bromii_120_rows_freq.npy --output r_bromii_predictions.txt
 ```
 
 
