@@ -6,15 +6,17 @@
 
 ---
 
-### 1. Copy the plotting script to your working directory
+### Run the plot
 ```bash
-cp /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/plot_inference_results.py .
+python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/plot_inference_results.py <predictions_txt> [options]
 ```
 
-### 2. Run the plot
-```bash
-python plot_inference_results.py <predictions_csv> [options]
+Example using R. bromii
+``` bash
+python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/plot_inference_results.py r_bromii_predictions.txt --title "R. bromii (HMP, n=120) Color CNN Genomic Scan" --bin_size 3 --output r_bromii_color_cnn_scan.png
 ```
+
+
 
 | Argument         | Required | Default           | Description                                                              |
 |------------------|----------|-------------------|--------------------------------------------------------------------------|

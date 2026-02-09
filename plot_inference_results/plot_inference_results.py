@@ -66,7 +66,7 @@ point_colors = highest_prob.map(color_map)
 # --- Plot ---
 fig, ax = plt.subplots(figsize=(12, 6))
 
-y_values = -np.log10(df_binned['P_Neutral'].clip(lower=1e-10))  # clip to avoid log(0)
+y_values = -np.log10(df_binned['P_Neutral'])  # removed clip, errors if log(0)
 
 ax.scatter(df_binned['Center'], y_values, c=point_colors, s=15, alpha=0.8)
 
