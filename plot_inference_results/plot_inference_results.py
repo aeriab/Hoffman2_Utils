@@ -77,18 +77,24 @@ else:
 # Sort by position
 df = df.sort_values('Center').reset_index(drop=True)
 
-# --- Bin consecutive windows ---
-df_binned = df.groupby(df.index // args.bin_size).mean(numeric_only=True)
-print(f"Binned {len(df)} windows into {len(df_binned)} bins (bin_size={args.bin_size})")
+# --- Rolling average of windows (Sliding Window) ---
+# Use rolling mean with a stride of 1. min_periods=1 ensures we get data for the edges.
+df_binned = df.rolling(window=args.bin_size, center=True, min_periods=1).mean(numeric_only=True)
+print(f"Computed rolling average (bin_size={args.bin_size}) for {len(df_binned)} positions")
 
 # --- Assign colors by top class ---
 highest_prob = df_binned[['P_Neutral', 'P_Soft', 'P_Hard']].idxmax(axis=1)
+
+# P_Neutral > 0.01 corresponds to -log10(P_Neutral) < 2
+final_labels = np.where(df_binned['P_Neutral'] > 0.01, 'P_Neutral', highest_prob)
+
 color_map = {
     'P_Neutral': 'grey',
     'P_Soft': 'skyblue',
     'P_Hard': 'red'
 }
-point_colors = highest_prob.map(color_map)
+# Use final_labels here instead of highest_prob
+point_colors = pd.Series(final_labels).map(color_map)
 
 # --- Plot ---
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -101,7 +107,7 @@ ax.set_title(f'{args.title} ({args.bin_size}-window average)')
 ax.set_xlabel(x_label)
 ax.set_ylabel('-log10(P_Neutral)')
 ax.grid(True, alpha=0.2)
-ax.autoscale(enable=True, axis='y')
+ax.set_ylim(0, 10)
 
 # Legend
 from matplotlib.lines import Line2D

@@ -19,6 +19,9 @@
 
 ---
 
+### Running the .sh script for a job
+qsub /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/csv_to_color_npy.sh my_data.csv my_output.npy
+
 ### Standard (sorted by frequency, downsampled to 120):
 ```bash
 python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 120
