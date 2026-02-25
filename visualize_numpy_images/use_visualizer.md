@@ -41,8 +41,7 @@ python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualiz
 
 ### Plot specific image indices
 ```bash
-python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
-    HS_sims.npy --indices 0 100 500 1000 --grid
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py HS_sims.npy --indices 0 100 500 1000 --grid
 ```
 
 ### Validate encoding + visualize

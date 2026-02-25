@@ -16,6 +16,8 @@ Data Encoding:
 """
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import argparse
 from pathlib import Path
@@ -211,11 +213,14 @@ def main():
         print()
     
     # Determine which indices to plot
+
     if args.indices:
         indices = args.indices
     else:
-        max_idx = min(args.n, data.shape[0])
-        indices = list(range(max_idx))
+        # REVISED: Generate n indices evenly spaced across the entire dataset
+        # This prevents only seeing the first few (often similar) simulations
+        num_to_plot = min(args.n, data.shape[0])
+        indices = np.linspace(0, data.shape[0] - 1, num_to_plot, dtype=int).tolist()
     
     # Create output directory
     output_dir = Path(args.output_dir)

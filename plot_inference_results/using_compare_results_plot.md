@@ -14,3 +14,7 @@ python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/compare_
 python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/compare_results_plot.py predictions.csv ricky_results.csv \
     --site_indices windows_site_indices.npy \
     --ricky_pval --ricky_col rNrS_pval
+
+
+Example call:
+python /u/project/ngarud/Garud_lab/Brendan/Utils/plot_inference_results/compare_results_plot.py r_bromii_pred_single_slide.txt Ruminococcus_bromii_62047_full_scan.txt --site_indices your_site_indices.npy --ricky_col iLDS --ricky_contig FP929051 --title "R. bromii sweep scan — FP929051" --output FP929051_comparison.png
