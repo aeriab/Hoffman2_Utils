@@ -3,16 +3,6 @@
 Visualize haplotype images from numpy arrays.
 Generates PNG files that can be downloaded and viewed locally.
 
-Data Encoding:
-  Channel 1 (Allele State):
-    -1 = Major allele (Red)
-     0 = Missing data (Grey)
-     1 = Minor allele (Blue)
-
-  Channel 2 (Mutation Type):
-    -1 = Synonymous mutation (Yellow)
-     0 = Major allele / Missing (Muted Red)
-     1 = Non-synonymous mutation (Green)
 """
 
 import numpy as np
