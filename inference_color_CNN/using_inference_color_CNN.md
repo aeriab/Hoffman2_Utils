@@ -45,9 +45,7 @@ python /u/project/ngarud/Garud_lab/Brendan/Utils/inference_color_CNN/color_CNN_i
 ### Examples
 ```bash
 # Basic usage
-python color_CNN_inference.py \
-    CNN_color_multiclass_sims_trained \
-    GHIST_colored.npy
+python color_CNN_inference.py CNN_color_multiclass_sims_trained GHIST_colored.npy
 
 # Custom output file and batch size
 python color_CNN_inference.py \
