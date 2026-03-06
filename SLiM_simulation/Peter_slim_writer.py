@@ -15,7 +15,7 @@ job_script = """#### dann_slimulations.sh START ####
 #$ -o joblog.$JOB_ID
 #$ -j y
 ## Edit the line below as needed:
-#$ -l h_rt=23:00:00,h_data=31G
+#$ -l h_rt=23:00:00,h_data=8G
 #$ -tc 499
 ## Modify the parallel environment
 ## and the number of cores as needed:
@@ -36,12 +36,12 @@ current_index=$(($SGE_TASK_ID-1))
 REGIME=${{all_regime_array[$current_index]}}
 REP_BIN=${{all_rep_bin_array[$current_index]}}
 
-CHR_LENGTH=50000
+CHR_LENGTH=100000
 N=10000
 NREP=101
 SAMPLE=200
 
-SLIM_SCRIPT="072925_dann_slim.txt"
+SLIM_SCRIPT="000001_dann_slim.txt"
 
 # Set slim parameters
 
