@@ -14,6 +14,9 @@
 #   Channel 2 (Mutation Type): -1=synonymous, 0=major/missing, 1=non-synonymous
 # =============================================================================
 
+# Example use:
+# qsub script.sh /path/to/csvs A_finegoldii 55
+
 # Load the job environment
 . /u/local/Modules/default/init/modules.sh
 module load anaconda3
@@ -29,15 +32,30 @@ echo ""
 
 # Input/Output
 INPUT_FOLDER=$1
-OUTPUT_NAME=$2
+PREFIX=$2
+MAX_NUM=$3
 
 # Ensure the user provided arguments
-if [ -z "$INPUT_FOLDER" ] || [ -z "$OUTPUT_NAME" ]; then
-    echo "Usage: qsub script.sh <input_csv> <output_npy_name>"
+if [ -z "$INPUT_FOLDER" ] || [ -z "$PREFIX" ] || [ -z "$MAX_NUM" ]; then
+    echo "Usage: qsub script.sh <input_folder> <prefix_term> <max_number>"
     exit 1
 fi
 
-python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py "$INPUT_FOLDER" "$OUTPUT_NAME" --window_h 200 --slide_step 1 --target_samples 120
+# Iterate from 01 to the max number
+for i in $(seq -f "%02g" 1 "$MAX_NUM"); do
+    FILE_NAME="${PREFIX}_${i}"
+    INPUT_PATH="${INPUT_FOLDER}/${FILE_NAME}.csv"
+    OUTPUT_PATH="${INPUT_FOLDER}/${FILE_NAME}.npy"
+
+    if [ -f "$INPUT_PATH" ]; then
+        echo "Processing: $FILE_NAME"
+        python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py \
+            "$INPUT_PATH" "$OUTPUT_PATH" --window_h 200 --slide_step 1 --target_samples 120
+    else
+        echo "File $INPUT_PATH not found, skipping..."
+    fi
+done
+
 
 # Echo job info on joblog
 echo ""
