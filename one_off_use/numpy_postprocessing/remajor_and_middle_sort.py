@@ -95,7 +95,7 @@ def main():
     parser = argparse.ArgumentParser(description="Flip majority alleles and sync color channels, then sort.")
     parser.add_argument("input_npy", help="Path to input .npy")
     parser.add_argument("output_npy", help="Path to output .npy")
-    parser.add_argument("--window", type=int, default=100, help="Middle SNP window size (default: 100)")
+    parser.add_argument("--window", type=int, default=200, help="Middle SNP window size (default: 200)")
     args = parser.parse_args()
 
     # Move check to the beginning

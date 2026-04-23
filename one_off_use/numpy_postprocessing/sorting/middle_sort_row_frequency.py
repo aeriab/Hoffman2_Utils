@@ -66,7 +66,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Sort SLiM numpy arrays by middle-window row frequency.")
     parser.add_argument("input", help="Input .npy file")
     parser.add_argument("output", help="Output .npy file")
-    parser.add_argument("--window", type=int, default=100, help="Number of middle SNPs to use for sorting identity (default: 100)")
+    parser.add_argument("--window", type=int, default=200, help="Number of middle SNPs to use for sorting identity (default: 200)")
     args = parser.parse_args()
 
     if os.path.exists(args.output):
