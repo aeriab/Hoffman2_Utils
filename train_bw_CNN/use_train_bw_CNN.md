@@ -1,7 +1,4 @@
-## How to train the Color CNN (3-class: Neutral, Hard Sweep, Soft Sweep)
-
-### Prerequisites
-You need three `.npy` files (one per class) already processed with the new color encoding scheme. See the [HMP csv to numpy README](../hmp_to_color_npy/HMP_csv_to_numpy_README.md) or equivalent SLiM pipeline for how to generate these.
+## How to train the Black and White CNN (3-class: Neutral, Hard Sweep, Soft Sweep)
 
 Each `.npy` should have shape `(num_sims, num_samples, window_h, 1)`.
 
