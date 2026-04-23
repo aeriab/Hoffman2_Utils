@@ -4,7 +4,7 @@
 #$ -o joblog.$JOB_ID
 #$ -j y
 #$ -m a
-#$ -l h_rt=24:00:00,h_data=30G,gpu
+#$ -l h_rt=24:00:00,h_data=30G,gpu,A100
 #$ -pe shared 1
 
 # --- Load Environment ---
