@@ -8,6 +8,7 @@
 #$ -pe shared 1
 
 # --- Load Environment ---
+# Ensure these match your specific cluster setup
 . /u/local/Modules/default/init/modules.sh
 module load anaconda3
 conda activate base
@@ -15,24 +16,22 @@ conda activate tf_A100_clean
 
 echo "Job $JOB_ID started on: `hostname -s` at `date`"
 
-# --- User Arguments ---
-# $1 = hard sweep npy
-# $2 = soft sweep npy
-# $3 = neutral npy
-# $4 = output model name
-# $5 = batch size (optional, default 32)
-# $6 = train proportion (optional, default 1.0)
-# $7 = test proportion (optional, default 0.2)
+# --- Hard-Coded Configurations ---
+# Replace these strings with your actual absolute paths
+HARD_NPY="/example_hard.npy"
+SOFT_NPY="/example_soft.npy"
+NEUTRAL_NPY="/example_neutral.npy"
+MODEL_NAME="CNN_Example_Title"
+BATCH_SIZE=32
+TRAIN_PROP=1.0
+TEST_PROP=0.2
 
-HARD_NPY="$1"
-SOFT_NPY="$2"
-NEUTRAL_NPY="$3"
-MODEL_NAME="$4"
-BATCH_SIZE="${5:-32}"
-TRAIN_PROP="${6:-1.0}"
-TEST_PROP="${7:-0.2}"
-
+# Path to your actual training logic script
 TRAIN_SCRIPT="/u/project/ngarud/Garud_lab/Brendan/Utils/train_color_CNN/color_CNN_train.py"
+
+# --- Run Training ---
+echo "Beginning training for model: $MODEL_NAME"
+echo "Using data: $HARD_NPY, $SOFT_NPY, $NEUTRAL_NPY"
 
 python "$TRAIN_SCRIPT" \
     "$HARD_NPY" \
@@ -44,8 +43,3 @@ python "$TRAIN_SCRIPT" \
     --test_prop "$TEST_PROP"
 
 echo "Job $JOB_ID ended on: `hostname -s` at `date`"
-
-# You'd submit it like:
-#### bash:
-# qsub train_cnn.sh hard_sorted_color.npy soft_sorted_color.npy neutral_sorted_color.npy my_color_model
-# qsub train_cnn.sh hard.npy soft.npy neutral.npy my_model 32 1.0 0.2
