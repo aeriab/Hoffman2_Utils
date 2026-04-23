@@ -27,7 +27,7 @@ TRAIN_PROP=1.0
 TEST_PROP=0.2
 
 # Path to your actual training logic script
-TRAIN_SCRIPT="/u/project/ngarud/Garud_lab/Brendan/Utils/train_color_CNN/color_CNN_train.py"
+TRAIN_SCRIPT="/u/project/ngarud/Garud_lab/Brendan/Utils/train_bw_CNN/bw_CNN_train.py"
 
 # --- Run Training ---
 echo "Beginning training for model: $MODEL_NAME"
