@@ -18,8 +18,8 @@ from tqdm import tqdm
 #    1 = non-synonymous     (GREEN    #44BD32)
 #
 # CSV RAW VALUES:  0 = ref/major,  1 = alt/minor,  -1 = missing
-# TRANSFORM Ch0:   0 -> -1 (major),  -1 -> 0 (missing),  1 -> 1 (minor)
-# TRANSFORM Ch1:   Only encode syn/nonsyn where sample carries minor allele (ch0==1)
+# Ch0:   0 -> -1 (major),  -1 -> 0 (missing),  1 -> 1 (minor)
+# Ch1:   Only encode syn/nonsyn where sample carries minor allele (ch0==1)
 #                  syn site + minor allele  -> -1
 #                  nonsyn site + minor allele -> 1
 #                  otherwise                  -> 0
@@ -27,16 +27,16 @@ from tqdm import tqdm
 
 # How to use:
 # Standard (2 channels, sorted by frequency, downsampled to 100):
-#   python HMP_csv_to_numpy_v2.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 100 --sort rows_freq
+#   python HMP_csv_to_numpy.py data.csv output.npy --window_h 200 --slide_step 10 --target_samples 100 --sort rows_freq
 #
 # Sort by distance:
-#   python HMP_csv_to_numpy_v2.py data.csv output.npy --sort rows_dist
+#   python HMP_csv_to_numpy.py data.csv output.npy --sort rows_dist
 #
 # No sorting:
-#   python HMP_csv_to_numpy_v2.py data.csv output.npy --sort none
+#   python HMP_csv_to_numpy.py data.csv output.npy --sort none
 #
 # Minimalist (defaults to rows_freq sorting, full samples):
-#   python HMP_csv_to_numpy_v2.py data.csv output.npy
+#   python HMP_csv_to_numpy.py data.csv output.npy
 
 try:
     import helper_haplotypeSorter
@@ -91,13 +91,14 @@ def build_color_channel(recoded_geno, site_types_window):
 
 
 def main():
+    np.random.seed(2023)
     parser = argparse.ArgumentParser(
         description="Convert HMP CSV to windowed NumPy arrays with NEW encoding scheme."
     )
     parser.add_argument("input_csv", help="Path to input CSV")
     parser.add_argument("output_npy", help="Path for output .npy file")
     parser.add_argument("--window_h", type=int, default=200, help="Window size (sites)")
-    parser.add_argument("--slide_step", type=int, default=10, help="Step size for sliding window")
+    parser.add_argument("--slide_step", type=int, default=1, help="Step size for sliding window")
     parser.add_argument("--target_samples", type=int, default=None,
                         help="Downsample to this many haplotypes (picks ones with least missing data)")
     parser.add_argument("--sort", type=str, choices=["rows_freq", "rows_dist", "none"],

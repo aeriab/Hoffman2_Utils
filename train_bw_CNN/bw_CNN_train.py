@@ -4,10 +4,12 @@ import os
 import argparse
 import numpy as np
 
-Utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '/u/project/ngarud/Garud_lab/DANN/Utils/'))
+# Utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '/u/project/ngarud/Garud_lab/DANN/Utils/'))
+Utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '/u/project/ngarud/Garud_lab/Brendan/Utils/DANN_Utils/'))
+
 sys.path.append(Utils_path)
 
-from CNN_multiclass_data_mergeSims_A100 import *
+from CNN_zero_as_missing_A100 import *
 import gc
 
 parser = argparse.ArgumentParser()
