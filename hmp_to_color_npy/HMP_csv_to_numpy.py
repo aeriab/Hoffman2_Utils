@@ -34,7 +34,7 @@ def build_color_channel(recoded_geno, site_types_window):
     return color
 
 def main():
-    # Set seed for reproducibility as requested
+    # Set seed for reproducibility
     np.random.seed(2023)
     
     parser = argparse.ArgumentParser(description="Convert HMP CSV to windowed NumPy arrays.")

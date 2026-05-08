@@ -8,14 +8,8 @@
 #$ -pe shared 1
 
 # Converts multiple HMP csv files to multiple numpy arrays for CNN training.
-#
-# Output Encoding:
-#   Channel 1 (Allele State):  -1=major, 0=missing, 1=minor
-#   Channel 2 (Mutation Type): -1=synonymous, 0=major/missing, 1=non-synonymous
+# Updated to support SNP thresholding and missing data filtering.
 # =============================================================================
-
-# Example use:
-# qsub script.sh /path/to/csvs A_finegoldii 55
 
 # Load the job environment
 . /u/local/Modules/default/init/modules.sh
@@ -23,41 +17,54 @@ module load anaconda3
 conda activate base
 conda activate tf_A100_clean
 
-# Echo job info on joblog
-echo "=============================================="
-echo "Job $JOB_ID started on: $(hostname -s)"
-echo "Job $JOB_ID started on: $(date)"
-echo "=============================================="
-echo ""
+# --- Configuration Parameters ---
+WINDOW_H=200
+SLIDE_STEP=1
+TARGET_SAMPLES=120
+SNP_THRESH=120        # Minimum SNPs in a window to keep it
+COMPLETE_THRESH=0.5  # % of non-missing data required per sample (e.g., 0.5 = 50%)
 
-# Input/Output
-INPUT_FOLDER=$1
-PREFIX=$2
-MAX_NUM=$3
+# Input/Output Arguments
+INPUT_PATH="example.csv"
+OUTPUT_PATH="example.npy"
 
 # Ensure the user provided arguments
-if [ -z "$INPUT_FOLDER" ] || [ -z "$PREFIX" ] || [ -z "$MAX_NUM" ]; then
-    echo "Usage: qsub script.sh <input_folder> <prefix_term> <max_number>"
+if [ -z "$INPUT_FOLDER" ] || [ -z "$PREFIX" ]; then
+    echo "Usage: qsub script.sh <input_folder> <prefix_term>"
     exit 1
 fi
 
+echo "=============================================="
+echo "Job $JOB_ID started on: $(hostname -s)"
+echo "Job $JOB_ID started on: $(date)"
+echo "Target Samples: $TARGET_SAMPLES"
+echo "SNP Threshold: $SNP_THRESH"
+echo "Complete Data Threshold: $COMPLETE_THRESH"
+echo "=============================================="
+echo ""
+
 # Iterate from 01 to the max number
 for i in $(seq -f "%02g" 1 "$MAX_NUM"); do
-    FILE_NAME="${PREFIX}_${i}"
-    INPUT_PATH="${INPUT_FOLDER}/${FILE_NAME}.csv"
-    OUTPUT_PATH="${INPUT_FOLDER}/${FILE_NAME}.npy"
 
     if [ -f "$INPUT_PATH" ]; then
-        echo "Processing: $FILE_NAME"
+        echo "----------------------------------------------"
+        
+        # Calling the updated Python script with new threshold flags
         python /u/project/ngarud/Garud_lab/Brendan/Utils/hmp_to_color_npy/HMP_csv_to_numpy.py \
-            "$INPUT_PATH" "$OUTPUT_PATH" --window_h 200 --slide_step 1 --target_samples 120
+            "$INPUT_PATH" \
+            "$OUTPUT_PATH" \
+            --window_h "$WINDOW_H" \
+            --slide_step "$SLIDE_STEP" \
+            --target_samples "$TARGET_SAMPLES" \
+            --snp_threshold "$SNP_THRESH" \
+            --complete_threshold "$COMPLETE_THRESH" \
+            --sort rows_freq
+            
     else
         echo "File $INPUT_PATH not found, skipping..."
     fi
 done
 
-
-# Echo job info on joblog
 echo ""
 echo "=============================================="
 echo "Job $JOB_ID ended on: $(hostname -s)"
