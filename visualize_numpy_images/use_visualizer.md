@@ -33,6 +33,11 @@ The visualizer expects numpy arrays with shape `(n_images, n_samples, n_sites, 2
 python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py Neu_sims.npy --output-dir ./plots
 ```
 
+### Generates 10 images sampled at equal intervals across the entire dataset.
+```bash
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py input.npy --n 10 --grid --prefix "spaced_samples"
+```
+
 ### Grid view of first 10 images
 ```bash
 python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
