@@ -24,9 +24,9 @@ SORT_ORDER="rows_freq"
 
 # 3. Specific File Paths
 # Update INPUT_DIR to the folder containing your rep_1.1...rep_500.2 files
-INPUT_DIR="/u/home/b/baeria/project-ngarud/wide_hmp_SLiMulations/middle_mutation_ms_output/ms_slimulations_results/hard"
-OUTPUT_FILE="hard_middle_windows_dataset.npy"
-PYTHON_SCRIPT="/u/project/ngarud/Garud_lab/Brendan/Utils/ms_to_haplotype_file/many_haplotypes_to_numpy.py"
+INPUT_DIR="ms_slimulations_results/soft"
+OUTPUT_FILE="soft_sims.npy"
+PYTHON_SCRIPT="util_scripts/many_haplotypes_to_numpy.py"
 
 echo "=============================================="
 echo "Job $JOB_ID started on: $(hostname -s)"
