@@ -38,6 +38,12 @@ python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualiz
 python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py input.npy --n 10 --grid --prefix "spaced_samples"
 ```
 
+### Generates 20 images from 10 evenly spaced image locations (10 images from channel 1, 10 from channel 2) sampled at equal intervals across the entire dataset.
+```bash
+python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py input.npy --n 10 --output-dir ./sampled_visuals --prefix "_spaced_color"
+```
+
+
 ### Grid view of first 10 images
 ```bash
 python /u/project/ngarud/Garud_lab/Brendan/Utils/visualize_numpy_images/visualize_haplotypes.py \
