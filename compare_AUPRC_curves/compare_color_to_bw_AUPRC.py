@@ -41,11 +41,14 @@ def get_args():
     parser.add_argument('--test_prop', type=float, default=0.2)
     parser.add_argument('--batch_size', type=int, default=32)
     
+    # Zoom Parameter (Optional minimum limit for top-right focus)
+    parser.add_argument('--zoom', type=float, default=None, 
+                        help="Lower limit for Precision and Recall axes to zoom into top-right (e.g., 0.7). Leaves full range if omitted.")
+    
     return parser.parse_args()
 
 def load_model_explicit(json_path, weights_path):
     """Manually loads and compiles model using explicit file paths."""
-    # Register custom objects for the Keras loader
     tf.keras.utils.get_custom_objects()['GradReverse'] = GradReverse
     tf.keras.utils.get_custom_objects()['custom_bce'] = custom_bce
     tf.keras.utils.get_custom_objects()['custom_categorical_ce'] = custom_categorical_ce
@@ -133,9 +136,23 @@ def main():
     plt.plot(b_neu[0], b_neu[1], color='#76b7b2', linestyle='--', lw=2, label=f'B&W Neutral (AUC={b_neu[2]:.3f})')
     plt.plot(b_swp[0], b_swp[1], color='#e15759', linestyle='--', lw=2, label=f'B&W Sweep (AUC={b_swp[2]:.3f})')
 
+    # Apply Dynamic Zoom if passed via CLI arguments
+    if args.zoom is not None:
+        if not (0.0 <= args.zoom < 1.0):
+            print(f"WARNING: Zoom value {args.zoom} out of valid bounds (0.0 to 1.0). Ignoring zoom.")
+        else:
+            plt.xlim(args.zoom, 1.01)
+            plt.ylim(args.zoom, 1.02)
+            print(f"Applying zoom focused on top-right: [{args.zoom}, 1.0]")
+
     plt.xlabel('Recall', fontsize=12); plt.ylabel('Precision', fontsize=12)
     plt.title('AUPRC Comparison: Color vs Black & White CNN', fontsize=14)
-    plt.legend(loc='lower left', fontsize=10); plt.grid(alpha=0.3); plt.tight_layout()
+    
+    # Moves the legend dynamically based on zoom to avoid covering data
+    legend_loc = 'lower left' if args.zoom is None else 'lower center'
+    plt.legend(loc=legend_loc, fontsize=10)
+    
+    plt.grid(alpha=0.3); plt.tight_layout()
 
     save_path = "CNN_Comparison_AUPRC.png"
     plt.savefig(save_path, dpi=300)

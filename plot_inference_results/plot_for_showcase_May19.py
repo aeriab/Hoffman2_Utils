@@ -90,9 +90,10 @@ highest_prob = df_binned[['P_Neutral', 'P_Soft', 'P_Hard']].idxmax(axis=1)
 # P_Neutral > 0.01 corresponds to -log10(P_Neutral) < 2
 final_labels = np.where(df_binned['P_Neutral'] > 0.01, 'P_Neutral', highest_prob)
 
+# Updated color map to merge Soft and Hard into a single color
 color_map = {
     'P_Neutral': 'grey',
-    'P_Soft': 'skyblue',
+    'P_Soft': 'red',
     'P_Hard': 'red'
 }
 # Use final_labels here instead of highest_prob
@@ -103,24 +104,35 @@ fig, ax = plt.subplots(figsize=(12, 6))
 
 y_values = -np.log10(df_binned['P_Neutral'].clip(lower=1e-10))
 
-ax.scatter(df_binned['Center'], y_values, c=point_colors, s=15, alpha=0.8)
+# Scatter plot of the data (zorder=2 to ensure points appear on top of the box)
+ax.scatter(df_binned['Center'], y_values, c=point_colors, s=15, alpha=0.8, zorder=2)
+
+# Add transparent grey box for the artificial starch gene (zorder=1 to sit behind data points)
+ax.axvspan(840000, 844800, color='yellow', alpha=0.3, zorder=1)
+
+# Add label for the box. x is centered at 842400. 
+# Using get_xaxis_transform() places the Y coordinate as a relative fraction of the axes (0.95 = near the top).
+ax.text(842400, 0.95, r'$\mathit{mdxef}$ (artificial starch gene)',
+        transform=ax.get_xaxis_transform(),
+        ha='center', va='top', fontsize=10, color='black',
+        bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=2), zorder=3)
 
 ax.set_title(f'{args.title} ({args.bin_size}-window average)')
 ax.set_xlabel(x_label)
 ax.set_ylabel('-log10(P_Neutral)')
 ax.grid(True, alpha=0.2)
 
-# Updated y-limit to use the new argument
+# Updated x and y limits
+# ax.set_xlim(600000, 900000)
 ax.set_ylim(0, args.y_max)
 
-# Legend
+# Updated Legend
 from matplotlib.lines import Line2D
 legend_elements = [
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='grey', markersize=8, label='Neutral'),
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=8, label='Hard Sweep'),
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='skyblue', markersize=8, label='Soft Sweep'),
+    Line2D([0], [0], marker='o', color='w', markerfacecolor='grey', markersize=12, label='Neutral'),
+    Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=12, label='Sweep'),
 ]
-ax.legend(handles=legend_elements, loc='upper right')
+ax.legend(handles=legend_elements, loc='upper left', fontsize=15, labelspacing=0.4, handletextpad=0.25)
 
 plt.tight_layout()
 plt.savefig(args.output, dpi=args.dpi)

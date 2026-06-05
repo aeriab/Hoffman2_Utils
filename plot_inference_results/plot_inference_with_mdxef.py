@@ -103,7 +103,18 @@ fig, ax = plt.subplots(figsize=(12, 6))
 
 y_values = -np.log10(df_binned['P_Neutral'].clip(lower=1e-10))
 
-ax.scatter(df_binned['Center'], y_values, c=point_colors, s=15, alpha=0.8)
+# Scatter plot of the data (zorder=2 to ensure points appear on top of the box)
+ax.scatter(df_binned['Center'], y_values, c=point_colors, s=15, alpha=0.8, zorder=2)
+
+# Add transparent grey box for the artificial starch gene (zorder=1 to sit behind data points)
+ax.axvspan(840000, 844800, color='grey', alpha=0.3, zorder=1)
+
+# Add label for the box. x is centered at 842400. 
+# Using get_xaxis_transform() places the Y coordinate as a relative fraction of the axes (0.95 = near the top).
+ax.text(842400, 0.95, r'$\mathit{mdxef}$ (artificial starch gene)',
+        transform=ax.get_xaxis_transform(),
+        ha='center', va='top', fontsize=10, color='black',
+        bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=2), zorder=3)
 
 ax.set_title(f'{args.title} ({args.bin_size}-window average)')
 ax.set_xlabel(x_label)

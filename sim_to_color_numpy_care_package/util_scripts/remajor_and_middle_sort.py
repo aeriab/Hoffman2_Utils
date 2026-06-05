@@ -102,9 +102,12 @@ def main():
     args = parser.parse_args()
 
     if os.path.exists(args.output_npy):
-        confirm = input(f"File {args.output_npy} exists. Overwrite? (y/n): ")
-        if confirm.lower() != 'y':
-            sys.exit("Operation cancelled.")
+        print(f"Warning: File {args.output_npy} already exists. Overwriting...")
+
+    # if os.path.exists(args.output_npy):
+    #     confirm = input(f"File {args.output_npy} exists. Overwrite? (y/n): ")
+    #     if confirm.lower() != 'y':
+    #         sys.exit("Operation cancelled.")
 
     print(f"Loading {args.input_npy} into memory...")
     data = np.load(args.input_npy)
