@@ -18,10 +18,15 @@ conda activate tf_A100_clean
 # 2. Define Script Path (Now assumed to be in the current directory)
 SORT_SCRIPT="util_scripts/remajor_and_middle_sort.py"
 
+
+# IN_* files:
+IN_HARD="hard_sims.npy"
+IN_NEUT="neutral_sims.npy"
+IN_SOFT="soft_sims.npy"
+
 # -----------------------------------------------------------------------------
 # 3. Process HARD Regime
 # -----------------------------------------------------------------------------
-IN_HARD="hard_fifty_times_sims_dataset.npy"
 OUT_HARD="hard_flipped_mid50sorted.npy"
 
 if [ -f "$IN_HARD" ]; then
@@ -34,7 +39,6 @@ fi
 # -----------------------------------------------------------------------------
 # 4. Process NEUTRAL Regime
 # -----------------------------------------------------------------------------
-IN_NEUT="neutral_fifty_times_sims_dataset.npy"
 OUT_NEUT="neutral_flipped_mid50sorted.npy"
 
 if [ -f "$IN_NEUT" ]; then
@@ -47,7 +51,6 @@ fi
 # -----------------------------------------------------------------------------
 # 5. Process SOFT Regime
 # -----------------------------------------------------------------------------
-IN_SOFT="soft_fifty_times_sims_dataset.npy"
 OUT_SOFT="soft_flipped_mid50sorted.npy"
 
 if [ -f "$IN_SOFT" ]; then

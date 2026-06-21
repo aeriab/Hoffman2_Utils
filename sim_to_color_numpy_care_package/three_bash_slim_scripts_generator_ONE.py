@@ -1,8 +1,18 @@
 import itertools
+import os
 
 # Parameters for the jobs
 all_regime = ["neutral", "hard", "soft"]
-all_rep_bin = range(1, 1001)
+# all_rep_bin = range(1, 1001)
+all_rep_bin = range(1, int(os.environ.get("REP_BIN_MAX", 1001)))
+
+
+# Simulation parameters - read from environment (set by run_full_pipeline.sh),
+# falling back to these defaults if run standalone.
+CHR_LENGTH = int(os.environ.get("CHR_LENGTH", 50000))
+N = int(os.environ.get("N", 10000))
+NREP = int(os.environ.get("NREP", 50))
+SAMPLE = int(os.environ.get("SAMPLE", 200))
 
 # The template for the .sh files
 # Note: I changed -tc to 100 to respect your per-job cap
@@ -27,10 +37,10 @@ current_index=$(($SGE_TASK_ID-1))
 REGIME=${{all_regime_array[$current_index]}}
 REP_BIN=${{all_rep_bin_array[$current_index]}}
 
-CHR_LENGTH=50000
-N=10000
-NREP=50
-SAMPLE=200
+CHR_LENGTH={chr_length}
+N={n}
+NREP={nrep}
+SAMPLE={sample}
 
 SLIM_SCRIPT="util_scripts/ms_dann_slim.txt"
 OUTPUT_DIR="ms_slimulations_results/$REGIME"
@@ -78,7 +88,11 @@ for regime in all_regime:
     formatted_script = job_script_template.format(
         task_limit=len(all_rep_bin),
         regime_list=regime_list,
-        rep_list=rep_list
+        rep_list=rep_list,
+        chr_length=CHR_LENGTH,
+        n=N,
+        nrep=NREP,
+        sample=SAMPLE
     )
     
     # Write to a unique filename

@@ -93,7 +93,7 @@ final_labels = np.where(df_binned['P_Neutral'] > 0.01, 'P_Neutral', highest_prob
 # Updated color map to merge Soft and Hard into a single color
 color_map = {
     'P_Neutral': 'grey',
-    'P_Soft': 'red',
+    'P_Soft': 'skyblue',
     'P_Hard': 'red'
 }
 # Use final_labels here instead of highest_prob
@@ -130,7 +130,8 @@ ax.set_ylim(0, args.y_max)
 from matplotlib.lines import Line2D
 legend_elements = [
     Line2D([0], [0], marker='o', color='w', markerfacecolor='grey', markersize=12, label='Neutral'),
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=12, label='Sweep'),
+    Line2D([0], [0], marker='o', color='w', markerfacecolor='skyblue', markersize=12, label='Soft Sweep'),
+    Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=12, label='Hard Sweep'),
 ]
 ax.legend(handles=legend_elements, loc='upper left', fontsize=15, labelspacing=0.4, handletextpad=0.25)
 

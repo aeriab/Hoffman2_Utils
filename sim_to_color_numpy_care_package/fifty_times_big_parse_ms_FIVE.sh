@@ -8,9 +8,14 @@
 
 # =============================================================================
 # MS to CSV Conversion Job Array (50x Scale)
-# Processes 3 regimes (neutral, hard, soft) across 1000 bins each.
-# Each bin contains 50 replicates.
-# Total tasks: 3000
+# Processes 3 regimes (neutral, hard, soft) across REP_BIN_MAX-1 bins each.
+# Each bin contains NREP replicates.
+#
+# NOTE on the #$ -t 1-3000 default above: that's only used if this script is
+# qsub'd standalone, where it matches the default REP_BIN_MAX=1001 (1000 bins
+# x 3 regimes = 3000). When launched from run_full_pipeline.sh, the orchestrator
+# overrides this with `qsub -t 1-$TOTAL_TASKS ...` computed from the actual
+# REP_BIN_MAX, so the two always stay in sync.
 # =============================================================================
 
 # 1. Load the environment
@@ -19,29 +24,36 @@ module load anaconda3
 conda activate base
 conda activate tf_A100_clean
 
-# 2. Define Paths 
+# 2. Define Paths
 # Adjust BASE_DIR if the "fifty_times_bigger" folder is in a different parent directory
 CONVERT_SCRIPT="util_scripts/parse_ms_mallelic_minimal.py"
 BASE_DIR="ms_slimulations_results"
-WINDOW_SIZE=50000
-NREP=50
+WINDOW_SIZE=${WINDOW_SIZE:-50000}
+NREP=${NREP:-50}
+REP_BIN_MAX=${REP_BIN_MAX:-1001}
+
+# REP_BIN_MAX is exclusive, matching three_bash_slim_scripts_generator_ONE.py's
+# `range(1, REP_BIN_MAX)`, so each regime has (REP_BIN_MAX - 1) rep bins.
+BINS_PER_REGIME=$((REP_BIN_MAX - 1))
 
 # 3. Determine Regime and Rep Bin based on SGE_TASK_ID
-# Tasks 1-1000: neutral, 1001-2000: hard, 2001-3000: soft
-if [ $SGE_TASK_ID -le 1000 ]; then
+# Tasks 1..BINS_PER_REGIME: neutral
+# Tasks BINS_PER_REGIME+1..2*BINS_PER_REGIME: hard
+# Tasks 2*BINS_PER_REGIME+1..3*BINS_PER_REGIME: soft
+if [ $SGE_TASK_ID -le $BINS_PER_REGIME ]; then
     REGIME="neutral"
     REP_BIN=$SGE_TASK_ID
-elif [ $SGE_TASK_ID -le 2000 ]; then
+elif [ $SGE_TASK_ID -le $((BINS_PER_REGIME * 2)) ]; then
     REGIME="hard"
-    REP_BIN=$(($SGE_TASK_ID - 1000))
+    REP_BIN=$(($SGE_TASK_ID - BINS_PER_REGIME))
 else
     REGIME="soft"
-    REP_BIN=$(($SGE_TASK_ID - 2000))
+    REP_BIN=$(($SGE_TASK_ID - BINS_PER_REGIME * 2))
 fi
 
 INPUT_DIR="$BASE_DIR/$REGIME"
 
-# 4. Loop through the 50 replicates for the specific bin
+# 4. Loop through the replicates for the specific bin
 for i in $(seq 1 $NREP); do
     IN_FILE="$INPUT_DIR/rep_$REP_BIN.$i.MS"
     OUT_FILE="$INPUT_DIR/rep_$REP_BIN.${i}_haplotypes.csv"

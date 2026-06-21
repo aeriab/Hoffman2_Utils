@@ -17,10 +17,11 @@ conda activate base
 conda activate tf_A100_clean
 
 # 2. Configuration Parameters
-WINDOW_H=354
-TARGET_SAMPLES=120
-COMPLETE_THRESH=0.7
+WINDOW_H=${WINDOW_H:-354}
+TARGET_SAMPLES=${TARGET_SAMPLES:-120}
+COMPLETE_THRESH=${COMPLETE_THRESH:-0.7}
 SORT_ORDER="rows_freq"
+CHR_LENGTH=${CHR_LENGTH:-50000}
 
 # 3. Specific File Paths
 # Update INPUT_DIR to the folder containing your rep_1.1...rep_500.2 files
@@ -49,7 +50,8 @@ if [ -d "$INPUT_DIR" ]; then
         --window_h "$WINDOW_H" \
         --target_samples "$TARGET_SAMPLES" \
         --complete_threshold "$COMPLETE_THRESH" \
-        --sort "$SORT_ORDER"
+        --sort "$SORT_ORDER" \
+        --chrom_len "$CHR_LENGTH"
         
     echo "----------------------------------------------"
     echo "Processing complete."
